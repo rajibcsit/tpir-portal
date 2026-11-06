@@ -115,3 +115,32 @@ php artisan make:migration add_student_lookup_indexes
 ```
 
 In that migration's `up()` method, add indexes for `student_id`, `technology`, `semester`, `session`, and `status`; add the matching `dropIndex()` calls in `down()`. Check existing index names first to avoid duplicate indexes. For MySQL, composite indexes such as `(technology, semester, session, status)` are useful for class-wise lookups. Test migrations on a backup/staging database before production.
+
+
+## TPIR Professional v4 updates
+
+### Role-based access
+- **Admin:** Full access to dashboard, students, attendance, results/GPA, payments, and staff account management.
+- **Teacher:** Daily attendance, attendance reports, exam marks, results/GPA, and read-only student directory.
+- **Accountant:** Payment entry, payment history, receipts, payment reports, and read-only student directory.
+- **Student:** Personal dashboard and own ID card.
+
+Admin creates Teacher and Accountant accounts from **Teacher & Accountant** in the sidebar. Each staff account has its own email, password, and role.
+
+### Printing
+- Student directory: use **Print Student List** after applying filters.
+- Student profile: use **Print Profile** or **ID Card / PDF**.
+- Payment report: use **Print Report** after applying filters.
+- Individual payment receipt: use **Receipt** in the payment table.
+
+### Profile photo delivery
+Student photos are stored on Laravel's `public` disk. This version serves them through an authenticated photo route, so the page does not depend on the operating system creating the `public/storage` symbolic link. Existing files must still be present under `storage/app/public/student-photos`.
+
+### Upgrade existing installation
+1. Back up your project folder and database.
+2. Replace project files with this release. Keep your existing `.env` and uploaded `storage/app/public/student-photos` files.
+3. Run `composer install` if dependencies are not installed.
+4. Run `php artisan optimize:clear`.
+5. Sign in as the Admin and create Teacher / Accountant accounts from the staff management page.
+
+No new database migration is required for the v4 role and print changes; the `role` field was introduced in the previous portal release. Do not run `migrate:fresh` on an existing database.

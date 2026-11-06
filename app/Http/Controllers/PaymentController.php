@@ -75,6 +75,20 @@ class PaymentController extends Controller
         return view('payments.index', array_merge(compact('payments', 'stats'), $this->filterOptions()));
     }
 
+    public function print(Request $request)
+    {
+        $query = Payment::with('student')->latest();
+        if ($request->input('filter') === 'due') $query->whereColumn('amount_paid', '<', 'amount_due');
+        if ($request->filled('search')) { $term=trim((string)$request->input('search')); $query->whereHas('student', fn($q) => $q->where('student_id','like',"%{$term}%")->orWhere('name','like',"%{$term}%")->orWhere('phone','like',"%{$term}%")); }
+        foreach (['department','technology','semester','session'] as $field) if ($request->filled($field)) $query->whereHas('student', fn($q) => $q->where($field,$request->input($field)));
+        $payments=$query->limit(2000)->get(); return view('payments.print',compact('payments'));
+    }
+
+    public function receipt(Payment $payment)
+    {
+        $payment->load('student'); return view('payments.receipt',compact('payment'));
+    }
+
     public function create(Request $request)
     {
         $payment = new Payment();
