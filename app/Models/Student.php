@@ -4,6 +4,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 class Student extends Model {
+ public const TECHNOLOGIES = ['Computer (CST)','Civil (CT)','Electrical (ET)','Mechanical (MT)','Textile (TT)','Architecture (AT)'];
+ public static function technologyOptions(): array { return self::TECHNOLOGIES; }
+ public static function legacyDepartment(string $technology): string { return trim(strstr($technology, ' (', true) ?: $technology); }
  protected $fillable=['student_id','name','profile_photo','department','technology','semester','shift','session','phone','email','guardian_name','guardian_phone','address','joining_date','status'];
  protected $casts=['joining_date'=>'date'];
  public function getProfilePhotoUrlAttribute(): ?string { return $this->profile_photo && Storage::disk('public')->exists($this->profile_photo) ? route('students.photo', $this) : null; }

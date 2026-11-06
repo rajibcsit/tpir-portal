@@ -144,3 +144,10 @@ Student photos are stored on Laravel's `public` disk. This version serves them t
 5. Sign in as the Admin and create Teacher / Accountant accounts from the staff management page.
 
 No new database migration is required for the v4 role and print changes; the `role` field was introduced in the previous portal release. Do not run `migrate:fresh` on an existing database.
+
+
+## TPIR Technology Catalogue
+
+Student admission uses Technology only; Department is not a required form field. The built-in options are Computer (CST), Civil (CT), Electrical (ET), Mechanical (MT), Textile (TT), and Architecture (AT). Semester and Session are selected separately. A compatibility value is still stored in the legacy `department` database column so existing installations and older records remain compatible.
+
+After updating, run `php artisan migrate` and `php artisan optimize:clear`. Do not run `migrate:fresh` on an existing institute database.

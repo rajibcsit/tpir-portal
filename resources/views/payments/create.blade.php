@@ -13,7 +13,7 @@
         <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4"><div class="font-bold text-slate-900">১. শিক্ষার্থী খুঁজুন ও নির্বাচন করুন</div><p class="mt-1 text-xs text-slate-500">একসঙ্গে সব শিক্ষার্থী লোড হয় না। ফিল্টার দিয়ে সর্বোচ্চ ৩০টি মিল দেখানো হবে।</p></div>
         <div class="p-5 space-y-4">
             <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div><label class="mb-1.5 block text-sm font-semibold">Department</label><select id="department" class="field"><option value="">সব Department</option>@foreach($departments as $v)<option value="{{ $v }}">{{ $v }}</option>@endforeach</select></div>
+                
                 <div><label class="mb-1.5 block text-sm font-semibold">Technology</label><select id="technology" class="field"><option value="">সব Technology</option>@foreach($technologies as $v)<option value="{{ $v }}">{{ $v }}</option>@endforeach</select></div>
                 <div><label class="mb-1.5 block text-sm font-semibold">Semester</label><select id="semester" class="field"><option value="">সব Semester</option>@foreach($semesters as $v)<option value="{{ $v }}">{{ $v }}</option>@endforeach</select></div>
                 <div><label class="mb-1.5 block text-sm font-semibold">Session</label><select id="session" class="field"><option value="">সব Session</option>@foreach($sessions as $v)<option value="{{ $v }}">{{ $v }}</option>@endforeach</select></div>
@@ -57,7 +57,7 @@
 <script>
 (() => {
     const endpoint = @json(route('payments.students.search'));
-    const fields = ['department', 'technology', 'semester', 'session'];
+    const fields = ['technology', 'semester', 'session'];
     const searchInput = document.getElementById('studentSearch');
     const resultWrap = document.getElementById('studentResults');
     const resultList = document.getElementById('studentResultList');
@@ -69,7 +69,6 @@
         'id' => $selectedStudent->id,
         'student_id' => $selectedStudent->student_id,
         'name' => $selectedStudent->name,
-        'department' => $selectedStudent->department,
         'technology' => $selectedStudent->technology,
         'semester' => $selectedStudent->semester,
         'session' => $selectedStudent->session,
@@ -79,7 +78,7 @@
     function showSelected(student) {
         selectedId.value = student.id;
         document.getElementById('selectedStudentName').textContent = `${student.name} (${student.student_id})`;
-        document.getElementById('selectedStudentMeta').textContent = [student.department, student.technology, `${student.semester || '—'} Semester`, `Session ${student.session || '—'}`, student.phone || ''].filter(Boolean).join(' · ');
+        document.getElementById('selectedStudentMeta').textContent = [student.technology, `${student.semester || '—'} Semester`, `Session ${student.session || '—'}`, student.phone || ''].filter(Boolean).join(' · ');
         selectedCard.classList.remove('hidden');
         saveButton.disabled = false;
         resultWrap.classList.add('hidden');
@@ -93,7 +92,7 @@
         if (term) params.set('search', term);
         fields.forEach(field => { const value = document.getElementById(field).value; if (value) params.set(field, value); });
         if (!term && !fields.some(field => document.getElementById(field).value)) {
-            message.textContent = 'দয়া করে Roll/নাম/মোবাইল লিখুন অথবা Department, Technology, Semester বা Session নির্বাচন করুন।';
+            message.textContent = 'দয়া করে Roll/নাম/মোবাইল লিখুন অথবা Technology, Semester বা Session নির্বাচন করুন।';
             message.classList.remove('hidden'); resultWrap.classList.add('hidden'); return;
         }
         message.textContent = 'শিক্ষার্থী খোঁজা হচ্ছে…'; message.classList.remove('hidden');
@@ -113,7 +112,7 @@
                 row.className = 'flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between hover:bg-blue-50/60';
                 const info = document.createElement('div');
                 const title = document.createElement('div'); title.className = 'font-bold text-slate-900'; title.textContent = `${student.student_id} — ${student.name}`;
-                const meta = document.createElement('div'); meta.className = 'mt-1 text-xs text-slate-500'; meta.textContent = [student.department, student.technology, `${student.semester || '—'} Semester`, `Session ${student.session || '—'}`, student.phone || ''].filter(Boolean).join(' · ');
+                const meta = document.createElement('div'); meta.className = 'mt-1 text-xs text-slate-500'; meta.textContent = [student.technology, `${student.semester || '—'} Semester`, `Session ${student.session || '—'}`, student.phone || ''].filter(Boolean).join(' · ');
                 info.append(title, meta);
                 const button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-primary'; button.textContent = 'এই শিক্ষার্থী নির্বাচন'; button.addEventListener('click', () => showSelected(student));
                 row.append(info, button); resultList.append(row);

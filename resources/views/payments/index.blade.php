@@ -15,7 +15,7 @@
     <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4"><div class="font-bold">শিক্ষার্থী ও পেমেন্ট সার্চ</div><p class="mt-1 text-xs text-slate-500">একাধিক ফিল্টার একসঙ্গে ব্যবহার করতে পারবেন।</p></div>
     <form method="GET" class="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
         <div class="sm:col-span-2"><label class="mb-1 block text-xs font-semibold text-slate-600">Roll / শিক্ষার্থীর নাম / মোবাইল</label><input name="search" value="{{ request('search') }}" class="field" placeholder="Roll বা নাম লিখুন"></div>
-        <div><label class="mb-1 block text-xs font-semibold text-slate-600">Department</label><select name="department" class="field"><option value="">সব Department</option>@foreach($departments as $v)<option value="{{ $v }}" @selected(request('department')===$v)>{{ $v }}</option>@endforeach</select></div>
+        
         <div><label class="mb-1 block text-xs font-semibold text-slate-600">Technology</label><select name="technology" class="field"><option value="">সব Technology</option>@foreach($technologies as $v)<option value="{{ $v }}" @selected(request('technology')===$v)>{{ $v }}</option>@endforeach</select></div>
         <div><label class="mb-1 block text-xs font-semibold text-slate-600">Semester</label><select name="semester" class="field"><option value="">সব Semester</option>@foreach($semesters as $v)<option value="{{ $v }}" @selected(request('semester')===$v)>{{ $v }}</option>@endforeach</select></div>
         <div><label class="mb-1 block text-xs font-semibold text-slate-600">Session</label><select name="session" class="field"><option value="">সব Session</option>@foreach($sessions as $v)<option value="{{ $v }}" @selected(request('session')===$v)>{{ $v }}</option>@endforeach</select></div>

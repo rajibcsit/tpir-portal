@@ -16,15 +16,17 @@ class MonthlyAttendanceController extends Controller {
             'attendances as late_days' => fn($a) => $a->whereBetween('attendance_date',[$start->toDateString(),$end->toDateString()])->where('status','Late'),
             'attendances as leave_days' => fn($a) => $a->whereBetween('attendance_date',[$start->toDateString(),$end->toDateString()])->where('status','Leave'),
         ]);
-        if ($request->filled('department')) $q->where('department',$request->department);
         if ($request->filled('technology')) $q->where('technology',$request->technology);
-        $students = $q->orderBy('department')->orderBy('technology')->orderBy('student_id')->get()->map(function($s) {
+        if ($request->filled('semester')) $q->where('semester',$request->semester);
+        if ($request->filled('session')) $q->where('session',$request->session);
+        $students = $q->orderBy('technology')->orderBy('semester')->orderBy('student_id')->get()->map(function($s) {
             $counted = $s->present_days + $s->absent_days + $s->late_days;
             $s->attendance_percentage = $counted ? round(($s->present_days / $counted) * 100, 2) : null;
             return $s;
         });
-        $departments = Student::select('department')->distinct()->orderBy('department')->pluck('department');
-        $technologies = Student::whereNotNull('technology')->select('technology')->distinct()->orderBy('technology')->pluck('technology');
-        return view('attendance.monthly',compact('month','students','departments','technologies'));
+        $technologies = Student::technologyOptions();
+        $semesters = Student::select('semester')->whereNotNull('semester')->distinct()->orderBy('semester')->pluck('semester');
+        $sessions = Student::select('session')->whereNotNull('session')->distinct()->orderBy('session')->pluck('session');
+        return view('attendance.monthly',compact('month','students','technologies','semesters','sessions'));
     }
 }

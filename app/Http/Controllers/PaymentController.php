@@ -12,8 +12,7 @@ class PaymentController extends Controller
     private function filterOptions(): array
     {
         return [
-            'departments' => Student::query()->whereNotNull('department')->distinct()->orderBy('department')->pluck('department'),
-            'technologies' => Student::query()->whereNotNull('technology')->distinct()->orderBy('technology')->pluck('technology'),
+            'technologies' => Student::technologyOptions(),
             'semesters' => Student::query()->whereNotNull('semester')->distinct()->orderBy('semester')->pluck('semester'),
             'sessions' => Student::query()->whereNotNull('session')->distinct()->orderBy('session')->pluck('session'),
         ];
@@ -24,7 +23,7 @@ class PaymentController extends Controller
     {
         $query = Student::query();
 
-        foreach (['department', 'technology', 'semester', 'session', 'shift', 'status'] as $field) {
+        foreach (['technology', 'semester', 'session', 'shift', 'status'] as $field) {
             if ($request->filled($field)) {
                 $query->where($field, $request->input($field));
             }
@@ -57,7 +56,7 @@ class PaymentController extends Controller
                     ->orWhere('phone', 'like', "%{$term}%");
             });
         }
-        foreach (['department', 'technology', 'semester', 'session'] as $field) {
+        foreach (['technology', 'semester', 'session'] as $field) {
             if ($request->filled($field)) {
                 $value = $request->input($field);
                 $query->whereHas('student', fn ($studentQuery) => $studentQuery->where($field, $value));
@@ -80,7 +79,7 @@ class PaymentController extends Controller
         $query = Payment::with('student')->latest();
         if ($request->input('filter') === 'due') $query->whereColumn('amount_paid', '<', 'amount_due');
         if ($request->filled('search')) { $term=trim((string)$request->input('search')); $query->whereHas('student', fn($q) => $q->where('student_id','like',"%{$term}%")->orWhere('name','like',"%{$term}%")->orWhere('phone','like',"%{$term}%")); }
-        foreach (['department','technology','semester','session'] as $field) if ($request->filled($field)) $query->whereHas('student', fn($q) => $q->where($field,$request->input($field)));
+        foreach (['technology','semester','session'] as $field) if ($request->filled($field)) $query->whereHas('student', fn($q) => $q->where($field,$request->input($field)));
         $payments=$query->limit(2000)->get(); return view('payments.print',compact('payments'));
     }
 
@@ -102,15 +101,14 @@ class PaymentController extends Controller
     {
         $request->validate([
             'search' => 'nullable|string|max:100',
-            'department' => 'nullable|string|max:100',
-            'technology' => 'nullable|string|max:100',
+            'technology' => ['nullable','string',\Illuminate\Validation\Rule::in(Student::technologyOptions())],
             'semester' => 'nullable|string|max:30',
             'session' => 'nullable|string|max:30',
         ]);
 
         $studentQuery = $this->filteredStudents($request)->where('status', 'Active');
         $total = (clone $studentQuery)->count();
-        $students = $studentQuery->orderBy('student_id')->limit(30)->get(['id', 'student_id', 'name', 'department', 'technology', 'semester', 'session', 'phone']);
+        $students = $studentQuery->orderBy('student_id')->limit(30)->get(['id', 'student_id', 'name', 'technology', 'semester', 'session', 'phone']);
 
         return response()->json([
             'data' => $students,
