@@ -40,6 +40,8 @@ Route::middleware('portal.auth')->group(function(){
         Route::get('/questions',[QuestionPaperController::class,'index'])->name('questions.index');
         Route::get('/questions/create',[QuestionPaperController::class,'create'])->name('questions.create');
         Route::post('/questions',[QuestionPaperController::class,'store'])->name('questions.store');
+        Route::get('/questions/{question}/edit',[QuestionPaperController::class,'edit'])->name('questions.edit');
+        Route::put('/questions/{question}',[QuestionPaperController::class,'update'])->name('questions.update');
         Route::get('/questions/{question}',[QuestionPaperController::class,'show'])->name('questions.show');
         Route::delete('/questions/{question}',[QuestionPaperController::class,'destroy'])->name('questions.destroy');
         Route::post('/results',[ExamResultController::class,'store'])->name('results.store');

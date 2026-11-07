@@ -186,3 +186,19 @@ The question-paper builder now supports the structured printed layout shown in t
 After replacing the project files, run `php artisan migrate` to add the optional BTEB paper-header fields, then run `php artisan optimize:clear`.
 
 The supplied image is treated as a layout reference, not an official syllabus dataset. Teachers must verify each subject, subject code, chapter/topic and assessment structure against the applicable BTEB 2022 curriculum and institute instructions.
+
+
+## Question Paper teacher ownership / access control
+
+- Each teacher sees only question papers created by their own portal account.
+- Teachers can view, edit, and delete only their own question papers. Requests to another teacher’s paper return HTTP 403, including direct URL/API-style form submissions.
+- Admin users can view and manage all teachers’ question papers.
+- New question papers automatically store the logged-in portal user ID in `created_by`.
+- Existing question papers retain the creator ID already stored. Legacy records with a null `created_by` are visible/manageable only by admins.
+- No database migration is required for this access-control update.
+
+## v6.4 Question paper optional-answer marks
+- Each question-paper section now has an `answer_count` setting (how many questions students must answer).
+- Section marks and paper full marks are calculated from the marks of the required number of highest-mark questions in that section.
+- Teachers can set marks individually for each question; the full-mark field auto-fills from the section rules and can still be manually edited, with server-side validation requiring it to match the calculated total.
+- The printed paper displays whether students must answer all questions or any specified number, plus the section's calculated marks.
