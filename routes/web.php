@@ -1,6 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{AuthController,DashboardController,StudentController,AttendanceController,PaymentController,StudentCardController,MonthlyAttendanceController,ExamResultController,StudentPortalController,UserController,StudentPhotoController};
+use App\Http\Controllers\{AuthController,DashboardController,StudentController,AttendanceController,PaymentController,StudentCardController,MonthlyAttendanceController,ExamResultController,StudentPortalController,UserController,StudentPhotoController,QuestionPaperController};
 
 Route::get('/login',[AuthController::class,'showLogin'])->name('login');
 Route::post('/login',[AuthController::class,'login'])->name('login.post');
@@ -37,11 +37,18 @@ Route::middleware('portal.auth')->group(function(){
         Route::get('/attendance/report',[AttendanceController::class,'report'])->name('attendance.report');
         Route::get('/attendance/monthly',[MonthlyAttendanceController::class,'index'])->name('attendance.monthly');
         Route::get('/results',[ExamResultController::class,'index'])->name('results.index');
+        Route::get('/questions',[QuestionPaperController::class,'index'])->name('questions.index');
+        Route::get('/questions/create',[QuestionPaperController::class,'create'])->name('questions.create');
+        Route::post('/questions',[QuestionPaperController::class,'store'])->name('questions.store');
+        Route::get('/questions/{question}',[QuestionPaperController::class,'show'])->name('questions.show');
+        Route::delete('/questions/{question}',[QuestionPaperController::class,'destroy'])->name('questions.destroy');
         Route::post('/results',[ExamResultController::class,'store'])->name('results.store');
         Route::delete('/results/{result}',[ExamResultController::class,'destroy'])->name('results.destroy');
     });
 
     Route::middleware('portal.role:admin,accountant')->group(function(){
+        Route::get('/payments/{payment}/collect',[PaymentController::class,'collectForm'])->name('payments.collect.form');
+        Route::post('/payments/{payment}/collect',[PaymentController::class,'collect'])->name('payments.collect');
         Route::get('/payments/student-search',[PaymentController::class,'studentSearch'])->name('payments.students.search');
         Route::get('/payments-print',[PaymentController::class,'print'])->name('payments.print');
         Route::get('/payments/{payment}/receipt',[PaymentController::class,'receipt'])->name('payments.receipt');

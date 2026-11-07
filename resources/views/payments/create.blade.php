@@ -38,11 +38,11 @@
     </section>
 
     <section class="panel overflow-hidden">
-        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4"><div class="font-bold text-slate-900">২. ফি ও পেমেন্টের তথ্য</div><p class="mt-1 text-xs text-slate-500">শিক্ষার্থী নির্বাচন করার পর নিচের তথ্য পূরণ করুন।</p></div>
+        <div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4"><div class="font-bold text-slate-900">২. ফি ও পেমেন্টের তথ্য</div><p class="mt-1 text-xs text-slate-500">প্রথমে মোট ফি/বকেয়া নির্ধারণ করুন। পরে তালিকা থেকে যেকোনো সময় কিস্তি জমা নিতে পারবেন।</p></div>
         <div class="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
             <div><label class="mb-1.5 block text-sm font-semibold">ফি / কিস্তির নাম *</label><input name="title" value="{{ old('title', $payment->title) }}" required class="field" placeholder="যেমন: Semester Fee / Exam Fee"></div>
             <div><label class="mb-1.5 block text-sm font-semibold">মোট নির্ধারিত টাকা (৳) *</label><input type="number" step="0.01" min="0" name="amount_due" value="{{ old('amount_due', $payment->amount_due) }}" required class="field" placeholder="5000"></div>
-            <div><label class="mb-1.5 block text-sm font-semibold">এখন জমা (৳) *</label><input type="number" step="0.01" min="0" name="amount_paid" value="{{ old('amount_paid', $payment->amount_paid ?? 0) }}" required class="field" placeholder="2000"></div>
+            <div><label class="mb-1.5 block text-sm font-semibold">প্রাথমিক জমা (৳) — না দিলে ০</label><input type="number" step="0.01" min="0" name="amount_paid" value="{{ old('amount_paid', $payment->amount_paid ?? 0) }}" class="field" placeholder="2000"></div>
             <div><label class="mb-1.5 block text-sm font-semibold">জমার মাধ্যম</label><select name="method" class="field"><option value="">নির্বাচন করুন</option>@foreach(['Cash','bKash','Nagad','Rocket','Bank'] as $m)<option value="{{ $m }}" @selected(old('method', $payment->method) === $m)>{{ $m }}</option>@endforeach</select></div>
             <div><label class="mb-1.5 block text-sm font-semibold">জমার তারিখ</label><input type="date" name="paid_date" value="{{ old('paid_date', $payment->paid_date?->format('Y-m-d') ?? now()->format('Y-m-d')) }}" class="field"></div>
             <div><label class="mb-1.5 block text-sm font-semibold">ফি জমার শেষ তারিখ</label><input type="date" name="due_date" value="{{ old('due_date', $payment->due_date?->format('Y-m-d')) }}" class="field"></div>

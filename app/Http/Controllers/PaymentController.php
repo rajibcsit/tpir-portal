@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Payment;
 use App\Models\Student;
+use App\Models\PaymentTransaction;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -124,13 +126,21 @@ class PaymentController extends Controller
             'student_id' => 'required|exists:students,id',
             'title' => 'required|string|max:150',
             'amount_due' => 'required|numeric|min:0',
-            'amount_paid' => 'required|numeric|min:0|lte:amount_due',
+            'amount_paid' => 'nullable|numeric|min:0|lte:amount_due',
             'due_date' => 'nullable|date',
             'paid_date' => 'nullable|date',
             'method' => 'nullable|string|max:50',
             'note' => 'nullable|string',
         ]);
-        Payment::create($data);
+        $data['amount_paid'] = $data['amount_paid'] ?? 0;
+        $payment = Payment::create($data);
+        if ((float) $data['amount_paid'] > 0) {
+            PaymentTransaction::create([
+                'payment_id' => $payment->id, 'amount' => $data['amount_paid'],
+                'paid_date' => $data['paid_date'] ?? now()->toDateString(),
+                'method' => $data['method'] ?? null, 'note' => $data['note'] ?? null,
+            ]);
+        }
         return redirect()->route('payments.index')->with('success', 'শিক্ষার্থীর পেমেন্ট সফলভাবে সংরক্ষণ হয়েছে।');
     }
 
@@ -146,14 +156,38 @@ class PaymentController extends Controller
             'student_id' => 'required|exists:students,id',
             'title' => 'required|string|max:150',
             'amount_due' => 'required|numeric|min:0',
-            'amount_paid' => 'required|numeric|min:0|lte:amount_due',
+            'amount_paid' => 'nullable|numeric|min:0|lte:amount_due',
             'due_date' => 'nullable|date',
             'paid_date' => 'nullable|date',
             'method' => 'nullable|string|max:50',
             'note' => 'nullable|string',
         ]);
+        $data['amount_paid'] = $data['amount_paid'] ?? 0;
         $payment->update($data);
         return redirect()->route('payments.index')->with('success', 'পেমেন্ট আপডেট হয়েছে।');
+    }
+
+
+    public function collectForm(Payment $payment)
+    {
+        $payment->load(['student','transactions']);
+        return view('payments.collect', compact('payment'));
+    }
+
+    public function collect(Request $request, Payment $payment)
+    {
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01', 'paid_date' => 'required|date',
+            'method' => 'required|string|max:50', 'transaction_id' => 'nullable|string|max:100', 'note' => 'nullable|string|max:1000'
+        ]);
+        $remaining = max(0, (float)$payment->amount_due - (float)$payment->amount_paid);
+        if ((float)$data['amount'] > $remaining) return back()->withErrors(['amount' => 'জমার পরিমাণ বকেয়া টাকার বেশি হতে পারবে না।'])->withInput();
+        DB::transaction(function () use ($payment, $data) {
+            PaymentTransaction::create(['payment_id'=>$payment->id] + $data);
+            $payment->increment('amount_paid', $data['amount']);
+            $payment->update(['paid_date'=>$data['paid_date'], 'method'=>$data['method']]);
+        });
+        return redirect()->route('payments.index')->with('success', 'কিস্তির টাকা জমা হয়েছে।');
     }
 
     public function destroy(Payment $payment)

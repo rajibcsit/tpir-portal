@@ -151,3 +151,38 @@ No new database migration is required for the v4 role and print changes; the `ro
 Student admission uses Technology only; Department is not a required form field. The built-in options are Computer (CST), Civil (CT), Electrical (ET), Mechanical (MT), Textile (TT), and Architecture (AT). Semester and Session are selected separately. A compatibility value is still stored in the legacy `department` database column so existing installations and older records remain compatible.
 
 After updating, run `php artisan migrate` and `php artisan optimize:clear`. Do not run `migrate:fresh` on an existing institute database.
+
+## Update v6: Fee ledger and E-Question Paper
+
+Run the following after replacing the project files and configuring the database:
+
+```bash
+php artisan migrate
+php artisan optimize:clear
+php artisan serve
+```
+
+### Fee ledger
+- Create a fee/due record with the student's total payable amount. Initial payment can be zero.
+- Use **টাকা জমা** from the fee list to record later installments.
+- Each new installment is stored separately with date, method, transaction ID and note; the remaining due is recalculated from the fee record's paid total.
+- Older payments remain compatible. Payments recorded before this update are retained as opening paid balances; their historical installment breakdown is not reconstructed.
+
+### E-Question Paper
+- Admin and Teacher can create and print subject question papers for Class Test, Quiz Test, Mid-term Exam, Model Test, Assignment and Final Exam.
+- Paper metadata includes Technology, Semester, Subject Code/Name, duration and marks. Each question can be tagged with a chapter/unit/topic and question type.
+- The paper is labelled **BTEB প্রবিধান ২০২২**. Teachers should verify subject codes, chapter coverage and marks distribution against the institute's approved BTEB 2022 syllabus before issuing a paper; the project does not include an imported official syllabus/question bank.
+
+## BTEB-style E-Question Paper Builder (v6.1)
+
+The question-paper builder now supports the structured printed layout shown in the supplied BTEB sample:
+- Editable board, diploma/program, exam session/year/term and department heading.
+- Technology, semester, subject name/code, assessment type, duration and full marks.
+- Multiple question sections (for example ক-বিভাগ, খ-বিভাগ, গ-বিভাগ), each with its own instruction and multiple questions.
+- Per-question topic/chapter, question type and marks; the server validates that all question marks add up to the declared full marks.
+- A4 print preview with sequential question numbering, section headings, marks at the right, and signature lines.
+- Older v6 question papers remain viewable using the legacy display fallback.
+
+After replacing the project files, run `php artisan migrate` to add the optional BTEB paper-header fields, then run `php artisan optimize:clear`.
+
+The supplied image is treated as a layout reference, not an official syllabus dataset. Teachers must verify each subject, subject code, chapter/topic and assessment structure against the applicable BTEB 2022 curriculum and institute instructions.
