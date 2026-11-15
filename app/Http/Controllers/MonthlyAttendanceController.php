@@ -1,25 +1,33 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Attendance;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-class MonthlyAttendanceController extends Controller {
-    public function index(Request $request) {
+
+class MonthlyAttendanceController extends Controller
+{
+    public function index(Request $request)
+    {
         $month = $request->input('month', now()->format('Y-m'));
-        try { $start = Carbon::createFromFormat('Y-m-d', $month.'-01')->startOfMonth(); }
-        catch (\Throwable $e) { abort(422, 'Invalid month'); }
+        try {
+            $start = Carbon::createFromFormat('Y-m-d', $month . '-01')->startOfMonth();
+        } catch (\Throwable $e) {
+            abort(422, 'Invalid month');
+        }
         $end = $start->copy()->endOfMonth();
-        $q = Student::where('status','Active')->withCount([
-            'attendances as present_days' => fn($a) => $a->whereBetween('attendance_date',[$start->toDateString(),$end->toDateString()])->where('status','Present'),
-            'attendances as absent_days' => fn($a) => $a->whereBetween('attendance_date',[$start->toDateString(),$end->toDateString()])->where('status','Absent'),
-            'attendances as late_days' => fn($a) => $a->whereBetween('attendance_date',[$start->toDateString(),$end->toDateString()])->where('status','Late'),
-            'attendances as leave_days' => fn($a) => $a->whereBetween('attendance_date',[$start->toDateString(),$end->toDateString()])->where('status','Leave'),
+        $q = Student::where('status', 'Active')->withCount([
+            'attendances as present_days' => fn($a) => $a->whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Present'),
+            'attendances as absent_days' => fn($a) => $a->whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Absent'),
+            'attendances as late_days' => fn($a) => $a->whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Late'),
+            'attendances as leave_days' => fn($a) => $a->whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Leave'),
         ]);
-        if ($request->filled('technology')) $q->where('technology',$request->technology);
-        if ($request->filled('semester')) $q->where('semester',$request->semester);
-        if ($request->filled('session')) $q->where('session',$request->session);
-        $students = $q->orderBy('technology')->orderBy('semester')->orderBy('student_id')->get()->map(function($s) {
+        if ($request->filled('technology')) $q->where('technology', $request->technology);
+        if ($request->filled('semester')) $q->where('semester', $request->semester);
+        if ($request->filled('session')) $q->where('session', $request->session);
+        $students = $q->orderBy('technology')->orderBy('semester')->orderBy('student_id')->get()->map(function ($s) {
             $counted = $s->present_days + $s->absent_days + $s->late_days;
             $s->attendance_percentage = $counted ? round(($s->present_days / $counted) * 100, 2) : null;
             return $s;
@@ -27,6 +35,6 @@ class MonthlyAttendanceController extends Controller {
         $technologies = Student::technologyOptions();
         $semesters = Student::select('semester')->whereNotNull('semester')->distinct()->orderBy('semester')->pluck('semester');
         $sessions = Student::select('session')->whereNotNull('session')->distinct()->orderBy('session')->pluck('session');
-        return view('attendance.monthly',compact('month','students','technologies','semesters','sessions'));
+        return view('attendance.monthly', compact('month', 'students', 'technologies', 'semesters', 'sessions'));
     }
 }

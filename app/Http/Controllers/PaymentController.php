@@ -61,7 +61,7 @@ class PaymentController extends Controller
         foreach (['technology', 'semester', 'session'] as $field) {
             if ($request->filled($field)) {
                 $value = $request->input($field);
-                $query->whereHas('student', fn ($studentQuery) => $studentQuery->where($field, $value));
+                $query->whereHas('student', fn($studentQuery) => $studentQuery->where($field, $value));
             }
         }
 
@@ -80,14 +80,19 @@ class PaymentController extends Controller
     {
         $query = Payment::with('student')->latest();
         if ($request->input('filter') === 'due') $query->whereColumn('amount_paid', '<', 'amount_due');
-        if ($request->filled('search')) { $term=trim((string)$request->input('search')); $query->whereHas('student', fn($q) => $q->where('student_id','like',"%{$term}%")->orWhere('name','like',"%{$term}%")->orWhere('phone','like',"%{$term}%")); }
-        foreach (['technology','semester','session'] as $field) if ($request->filled($field)) $query->whereHas('student', fn($q) => $q->where($field,$request->input($field)));
-        $payments=$query->limit(2000)->get(); return view('payments.print',compact('payments'));
+        if ($request->filled('search')) {
+            $term = trim((string)$request->input('search'));
+            $query->whereHas('student', fn($q) => $q->where('student_id', 'like', "%{$term}%")->orWhere('name', 'like', "%{$term}%")->orWhere('phone', 'like', "%{$term}%"));
+        }
+        foreach (['technology', 'semester', 'session'] as $field) if ($request->filled($field)) $query->whereHas('student', fn($q) => $q->where($field, $request->input($field)));
+        $payments = $query->limit(2000)->get();
+        return view('payments.print', compact('payments'));
     }
 
     public function receipt(Payment $payment)
     {
-        $payment->load('student'); return view('payments.receipt',compact('payment'));
+        $payment->load('student');
+        return view('payments.receipt', compact('payment'));
     }
 
     public function create(Request $request)
@@ -103,7 +108,7 @@ class PaymentController extends Controller
     {
         $request->validate([
             'search' => 'nullable|string|max:100',
-            'technology' => ['nullable','string',\Illuminate\Validation\Rule::in(Student::technologyOptions())],
+            'technology' => ['nullable', 'string', \Illuminate\Validation\Rule::in(Student::technologyOptions())],
             'semester' => 'nullable|string|max:30',
             'session' => 'nullable|string|max:30',
         ]);
@@ -136,9 +141,11 @@ class PaymentController extends Controller
         $payment = Payment::create($data);
         if ((float) $data['amount_paid'] > 0) {
             PaymentTransaction::create([
-                'payment_id' => $payment->id, 'amount' => $data['amount_paid'],
+                'payment_id' => $payment->id,
+                'amount' => $data['amount_paid'],
                 'paid_date' => $data['paid_date'] ?? now()->toDateString(),
-                'method' => $data['method'] ?? null, 'note' => $data['note'] ?? null,
+                'method' => $data['method'] ?? null,
+                'note' => $data['note'] ?? null,
             ]);
         }
         return redirect()->route('payments.index')->with('success', 'শিক্ষার্থীর পেমেন্ট সফলভাবে সংরক্ষণ হয়েছে।');
@@ -170,22 +177,25 @@ class PaymentController extends Controller
 
     public function collectForm(Payment $payment)
     {
-        $payment->load(['student','transactions']);
+        $payment->load(['student', 'transactions']);
         return view('payments.collect', compact('payment'));
     }
 
     public function collect(Request $request, Payment $payment)
     {
         $data = $request->validate([
-            'amount' => 'required|numeric|min:0.01', 'paid_date' => 'required|date',
-            'method' => 'required|string|max:50', 'transaction_id' => 'nullable|string|max:100', 'note' => 'nullable|string|max:1000'
+            'amount' => 'required|numeric|min:0.01',
+            'paid_date' => 'required|date',
+            'method' => 'required|string|max:50',
+            'transaction_id' => 'nullable|string|max:100',
+            'note' => 'nullable|string|max:1000'
         ]);
         $remaining = max(0, (float)$payment->amount_due - (float)$payment->amount_paid);
         if ((float)$data['amount'] > $remaining) return back()->withErrors(['amount' => 'জমার পরিমাণ বকেয়া টাকার বেশি হতে পারবে না।'])->withInput();
         DB::transaction(function () use ($payment, $data) {
-            PaymentTransaction::create(['payment_id'=>$payment->id] + $data);
+            PaymentTransaction::create(['payment_id' => $payment->id] + $data);
             $payment->increment('amount_paid', $data['amount']);
-            $payment->update(['paid_date'=>$data['paid_date'], 'method'=>$data['method']]);
+            $payment->update(['paid_date' => $data['paid_date'], 'method' => $data['method']]);
         });
         return redirect()->route('payments.index')->with('success', 'কিস্তির টাকা জমা হয়েছে।');
     }
